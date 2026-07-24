@@ -23,12 +23,12 @@
 }
 </style><script>
 try{
-  var p = new URLSearchParams(window.location.search).get('owner');
-  if(p){
+  var ownerParam = new URLSearchParams(window.location.search).get('owner');
+  if(ownerParam){
     var pin = localStorage.getItem('jn_custom_owner_pin') || '4814';
-    if(p===pin || p==='4814' || p==='julius'){
+    if(ownerParam===pin || ownerParam==='4814'){
       localStorage.setItem('jn_owner_auth','true');
-      localStorage.setItem('jn_custom_owner_pin', p==='julius'?pin:p);
+      localStorage.setItem('jn_custom_owner_pin', ownerParam);
     }
   }
 }catch(e){}
