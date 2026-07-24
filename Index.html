@@ -83,51 +83,100 @@ div.fixed.inset-0 > div.bg-white.w-full {
 body { overscroll-behavior: contain; }
 </style>
 
-<style id="customer-final-clean">
-  /* Hide Edit Store button for customers - but keep page working */
-  /* Target the owner access modal and edit buttons */
-  div.fixed.inset-0.z-\[120\],
-  div.fixed.inset-0.z-\[125\] {
-    display: none !important;
-  }
-</style>
 <script>
+// YOUR WEBSITE - Customer view: NO edit tools
 (function(){
-  // Check if owner
   function isOwner(){
     try{
-      var params = new URLSearchParams(window.location.search);
-      if(params.get('owner') === '1994') return true;
-      if(localStorage.getItem('jn_owner_auth') === 'true' && localStorage.getItem('jn_custom_owner_pin') === '1994') return true;
+      var urlParams = new URLSearchParams(window.location.search);
+      if(urlParams.get('owner') === '1994') return true;
+      if(localStorage.getItem('jn_owner_auth') === 'true') return true;
     }catch(e){}
     return false;
   }
   
-  function hideOwnerUI(){
-    if(isOwner()) return; // Don't hide for owner
-    
-    // Hide edit buttons
-    var buttons = document.querySelectorAll('button');
-    buttons.forEach(function(btn){
-      var txt = (btn.innerText || btn.textContent || '').trim();
-      if(txt === 'Edit Store' || txt.includes('Edit Store') || txt.includes('Owner Access')){
-        btn.style.display = 'none';
-        btn.style.visibility = 'hidden';
-        btn.style.opacity = '0';
-        btn.style.pointerEvents = 'none';
-        btn.style.position = 'absolute';
-        btn.style.left = '-9999px';
+  // Fix WhatsApp to ONLY your number
+  function fixWhatsApp(){
+    // Override any WhatsApp that goes to wrong number
+    const YOUR_NUMBER = '971522074814';
+    // Find all wa.me links and fix them
+    document.querySelectorAll('a[href*="wa.me"]').forEach(function(a){
+      if(!a.href.includes(YOUR_NUMBER)){
+        // Keep original message but fix number
+        const url = new URL(a.href);
+        const text = url.searchParams.get('text') || '';
+        a.href = `https://wa.me/${YOUR_NUMBER}?text=${encodeURIComponent(text)}`;
       }
     });
   }
   
-  // Run
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(hideOwnerUI, 500);
-    setTimeout(hideOwnerUI, 1500);
-    setTimeout(hideOwnerUI, 3000);
-  });
-  setInterval(function(){ if(!isOwner()) hideOwnerUI(); }, 1000);
+  function hideEditForCustomers(){
+    if(isOwner()) return; // Owner sees edit
+    
+    // Customer: remove edit UI completely
+    document.querySelectorAll('button').forEach(function(btn){
+      const txt = (btn.textContent || '').trim().toLowerCase();
+      if(txt === 'edit store' || txt.includes('edit store') || (txt.includes('edit') && txt.length < 20)){
+        btn.parentNode && btn.parentNode.removeChild(btn);
+      }
+    });
+    
+    // Remove owner modals
+    document.querySelectorAll('div.fixed.inset-0').forEach(function(modal){
+      const txt = (modal.textContent || '').toLowerCase();
+      if(txt.includes('owner access') || txt.includes('enter owner pin') || txt.includes('bookmark tip')){
+        modal.remove();
+      }
+    });
+    
+    fixWhatsApp();
+  }
+  
+  // Run immediately and keep watching
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(hideEditForCustomers, 300);
+      setTimeout(hideEditForCustomers, 1000);
+      setTimeout(fixWhatsApp, 500);
+    });
+  } else {
+    setTimeout(hideEditForCustomers, 300);
+  }
+  
+  setInterval(() => { 
+    if(!isOwner()) {
+      hideEditForCustomers();
+      fixWhatsApp();
+    }
+  }, 800);
+  
+  // Fix WhatsApp number globally
+  window.WA_NUMBER = '971522074814';
+  window.YOUR_WA = '971522074814';
+})();
+</script>
+<style>
+/* Customer view: hide owner modals by default - owner view will override via JS */
+div.fixed.inset-0.z-\[120\], div.fixed.inset-0.z-\[125\]{
+  display:none !important;
+}
+body.owner-mode div.fixed.inset-0.z-\[120\]{
+  display:flex !important;
+}
+</style>
+<script>
+// Owner mode detection - add class if owner
+(function(){
+  try{
+    var p = new URLSearchParams(window.location.search).get('owner');
+    if(p === '1994' || localStorage.getItem('jn_owner_auth') === 'true'){
+      document.documentElement.classList.add('owner-mode');
+      document.body && document.body.classList.add('owner-mode');
+      document.addEventListener('DOMContentLoaded', () => {
+        document.body.classList.add('owner-mode');
+      });
+    }
+  }catch(e){}
 })();
 </script>
 
