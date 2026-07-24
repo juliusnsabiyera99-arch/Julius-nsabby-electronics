@@ -21,7 +21,61 @@
 :where(code, pre, kbd, samp) {
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
-</style><script>
+</style>
+<style>
+/* Hide Edit Store button for customers - ULTRA HIDE */
+button:has-text("Edit Store"), 
+[data-testid="edit-store"],
+.edit-store-btn {
+  display: none !important;
+}
+/* Hide by text content via CSS hack */
+</style>
+<script>
+(function(){
+  function hideEditForCustomers(){
+    try{
+      var isOwner = false;
+      try{
+        var q = new URLSearchParams(window.location.search).get('owner');
+        if(q === '1994') isOwner = true;
+        if(localStorage.getItem('jn_owner_auth') === 'true') isOwner = true;
+        if(localStorage.getItem('jn_custom_owner_pin') === '1994' && localStorage.getItem('jn_owner_auth') === 'true') isOwner = true;
+      }catch(e){}
+      
+      if(!isOwner){
+        // Hide all buttons containing "Edit Store" or "Edit" in admin context
+        document.querySelectorAll('button').forEach(function(btn){
+          var txt = (btn.textContent || '').toLowerCase();
+          if(txt.includes('edit store') || txt.includes('edit') && txt.includes('store')){
+            btn.style.display = 'none';
+            btn.style.visibility = 'hidden';
+            btn.style.pointerEvents = 'none';
+          }
+        });
+        // Also hide owner access modal trigger
+        var modals = document.querySelectorAll('[class*="owner"], [class*="Owner"]');
+        // Don't hide everything, just edit triggers
+      } else {
+        // Owner: show edit buttons
+        document.querySelectorAll('button').forEach(function(btn){
+          var txt = (btn.textContent || '').toLowerCase();
+          if(txt.includes('edit store')){
+            btn.style.display = '';
+            btn.style.visibility = 'visible';
+          }
+        });
+      }
+    }catch(e){}
+  }
+  
+  // Run on load and periodically
+  document.addEventListener('DOMContentLoaded', hideEditForCustomers);
+  setInterval(hideEditForCustomers, 1000);
+  window.addEventListener('load', hideEditForCustomers);
+})();
+</script>
+<script>
 try{
   localStorage.setItem('jn_custom_owner_pin','1994');
   var q = new URLSearchParams(window.location.search).get('owner');
