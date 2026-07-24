@@ -21,7 +21,16 @@
 :where(code, pre, kbd, samp) {
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
-</style>
+</style><script>
+try{
+  var isOwnerUrl = window.location.search.includes('owner=');
+  if(!isOwnerUrl){
+    localStorage.removeItem('jn_owner_auth');
+    localStorage.removeItem('jn_custom_owner_pin');
+    localStorage.removeItem('jn_admin_designer');
+  }
+} catch(e){}
+</script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>React Artifact</title>
